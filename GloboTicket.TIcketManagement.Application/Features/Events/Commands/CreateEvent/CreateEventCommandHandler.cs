@@ -1,7 +1,9 @@
 ﻿
 using AutoMapper;
 using GloboTicket.TicketManagement.Domain.Entities;
+using GloboTicket.TIcketManagement.Application.Contracts.Infrastructure;
 using GloboTicket.TIcketManagement.Application.Contracts.Persistence;
+using GloboTicket.TIcketManagement.Application.Models.Mail;
 using MediatR;
 
 
@@ -12,11 +14,13 @@ namespace GloboTicket.TIcketManagement.Application.Features.Events.Commands.Crea
     {
         private readonly IMapper _mapper;
         private readonly IEventRepository _eventRepository;
+        private readonly IEmailService _emailService;
 
-        public CreateEventCommandHandler(IMapper mapper, IEventRepository eventRepository)
+        public CreateEventCommandHandler(IMapper mapper, IEventRepository eventRepository, IEmailService emailService)
         {
             _mapper = mapper;
             _eventRepository = eventRepository;
+            _emailService = emailService;
         }
 
         public async Task<Guid> Handle(CreateEventCommand request, CancellationToken cancellationToken)
@@ -34,6 +38,24 @@ namespace GloboTicket.TIcketManagement.Application.Features.Events.Commands.Crea
 
 
                 @event = await _eventRepository.AddAsync(@event);
+
+            // send email notification to admin address
+            var email = new Email()
+            {
+                To = "admin@hotmail.com",
+                Body = $"A new event was created: {request}",
+                Subject = $"A new event was created"
+            };
+
+            try
+            {
+                await _emailService.SendEmail(email);
+            }
+            catch (Exception ex)
+            {
+                // this shouldn't stop the API from doing else so this can be logged
+            }
+
 
             return @event.EventId;
         }
