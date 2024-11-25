@@ -1,4 +1,5 @@
 ﻿using GloboTicket.TicketManagement.Application;
+using GloboTicket.TicketManagement.Application.Contracts;
 using GloboTicket.TicketManagement.Infrastructure;
 using GloboTicket.TicketManagement.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,12 @@ namespace GloboTicket.TicketManagement.Api
             builder.Services.AddApplicationServices(); // AutoMapper and MediatR
             builder.Services.AddInfrastructureServices(builder.Configuration); // email service
             builder.Services.AddPersistenceServices(builder.Configuration); // DbContext and Repositories
+
+            builder.Services.AddScoped<ILoggedInUserService, ILoggedInUserService>();
+
+            builder.Services.AddHttpContextAccessor();
+
+
 
             builder.Services.AddControllers();
 
